@@ -1,0 +1,24 @@
+ ./pig -x local -param input1=~/Desktop/CIS761/scripts/pig/users -param input2=~/Desktop/CIS761/scripts/pig/pages -param out=~/Desktop/CIS761/scripts/pig/out ~/Desktop/CIS761/scripts/pig/userPage.pig 
+ 
+./pig -x local -param input=/Users/doina/Desktop/CIS761/scripts/pig/tweets.csv ~/Desktop/CIS761/scripts/pig/strip-quote.pig 
+ 
+./pig -x local -param input=/Users/doina/Desktop/CIS761/scripts/pig/data-bag.txt -param out=/Users/doina/Desktop/CIS761/scripts/pig/out-bag ~/Desktop/CIS761/scripts/pig/data-bag.pig 
+
+./pig -x local -param input=~/Desktop/CIS761/assignments/assignment8/dblp_coauthor_processed.txt -param out=~/Desktop/CIS761/assignments/assignment8/out ~/Desktop/CIS761/assignments/assignment8/761TestScript.pig 
+
+Beocat 
+
+WordCount
+
+gremlin00:~> hadoop fs -put bible+shakes.nopunc
+
+gremlin00:~> hdfs dfs -put bible+shakes.nopunc
+
+gremlin00:~> yarn jar WordCount1.jar WordCount input output
+
+Data-bag
+
+hdfs dfs -put /homes/dcaragea/pig/data-bag.txt
+
+pig -param input=data-bag.txt -param out=out-bag /homes/dcaragea/pig/data-bag.pig
+

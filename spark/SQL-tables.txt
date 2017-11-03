@@ -1,0 +1,68 @@
+dmac2013:spark-2.1.0-bin-hadoop2.7 doina$ ./bin/spark-shell --master local --driver-class-path /Users/doina/Desktop/postgresql-9.4.1208.jre6.jar --conf spark.driver.extraClassPath=/Users/doina/Desktop/postgresql-9.4.1208.jre6.jar --jars /Users/doina/Desktop/postgresql-9.4.1208.jre6.jar
+
+scala> val url = "jdbc:postgresql://postgresql.cis.ksu.edu:5432/cis761?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory&user=cis761&password=demo"
+
+scala> val df = spark.read.format("jdbc").option("url", url).option("dbtable", "countries").load()
+
+scala> df.printSchema()
+
+root
+ |-- code: string (nullable = false)
+ |-- name: string (nullable = false)
+ |-- continent: string (nullable = true)
+
+
+scala> val countsByContinent = df.groupBy("continent").count()
+
+
+scala> countsByContinent.show()
++-------------+-----+                                                           
+|    continent|count|
++-------------+-----+
+|       Europe|   52|
+|       Africa|   59|
+|North America|   37|
+|   Antarctica|    4|
+|South America|   14|
+|      Oceania|   26|
+|         Asia|   52|
++-------------+-----+
+
+scala> :quit
+
+dmac2013:spark-2.1.0-bin-hadoop2.7 doina$ ./bin/spark-shell --master local --driver-class-path /Users/doina/Desktop/mysql-connector-java-5.1.38-bin.jar --conf spark.driver.extraClassPath=/Users/doina/Desktop/mysql-connector-java-5.1.38-bin.jar --jars /Users/doina/Desktop/mysql-connector-java-5.1.38-bin.jar
+
+scala> val url = "jdbc:mysql://mysql.cis.ksu.edu:3306/cis761?user=cis761&password=demo"
+
+scala> val df = spark.read.format("jdbc").option("url", url).option("dbtable", "Movie").load()
+
+scala> df.printSchema()
+
+scala> df.printSchema()
+root
+ |-- mID: integer (nullable = true)
+ |-- title: string (nullable = true)
+ |-- year: integer (nullable = true)
+ |-- director: string (nullable = true)
+
+
+scala> val countsByYear = df.groupBy("year").count()
+
+
+scala> countsByYear.show()
+
+scala> countsByYear.show()
++----+-----+
+|year|count|
++----+-----+
+|1977|    1|
+|1939|    1|
+|1997|    1|
+|1982|    1|
+|1965|    1|
+|2009|    1|
+|1937|    1|
+|1981|    1|
++----+-----+
+
+

@@ -1,0 +1,188 @@
+Start Mongpdb Instance
+
+dcaragea@viper:~/mongodb$ mongodb-linux-x86_64-ubuntu1604-3.4.3/bin/mongod --dbpath /home/d/dcaragea/mongodb/data/db --port 2012
+
+Start MongoDB without access control 
+
+dcaragea@viper:~/mongodb$ mongodb-linux-x86_64-ubuntu1604-3.4.3/bin/mongo --port 2012
+
+
+dcaragea@viper:~/mongodb$ mongodb-linux-x86_64-ubuntu1604-3.4.3/bin/mongo --port 2012
+MongoDB shell version v3.4.3
+connecting to: mongodb://127.0.0.1:2012/
+MongoDB server version: 3.4.3
+Server has startup warnings: 
+2017-04-11T22:34:25.657-0500 I CONTROL  [initandlisten] 
+2017-04-11T22:34:25.657-0500 I CONTROL  [initandlisten] ** WARNING: Access control is not enabled for the database.
+2017-04-11T22:34:25.657-0500 I CONTROL  [initandlisten] **          Read and write access to data and configuration is unrestricted.
+2017-04-11T22:34:25.657-0500 I CONTROL  [initandlisten] 
+2017-04-11T22:34:25.657-0500 I CONTROL  [initandlisten] 
+2017-04-11T22:34:25.657-0500 I CONTROL  [initandlisten] ** WARNING: You are running on a NUMA machine.
+2017-04-11T22:34:25.657-0500 I CONTROL  [initandlisten] **          We suggest launching mongod like this to avoid performance problems:
+2017-04-11T22:34:25.657-0500 I CONTROL  [initandlisten] **              numactl --interleave=all mongod [other options]
+2017-04-11T22:34:25.657-0500 I CONTROL  [initandlisten] 
+2017-04-11T22:34:25.657-0500 I CONTROL  [initandlisten] ** WARNING: /sys/kernel/mm/transparent_hugepage/enabled is 'always'.
+2017-04-11T22:34:25.657-0500 I CONTROL  [initandlisten] **        We suggest setting it to 'never'
+2017-04-11T22:34:25.657-0500 I CONTROL  [initandlisten] 
+2017-04-11T22:34:25.657-0500 I CONTROL  [initandlisten] ** WARNING: /sys/kernel/mm/transparent_hugepage/defrag is 'always'.
+2017-04-11T22:34:25.657-0500 I CONTROL  [initandlisten] **        We suggest setting it to 'never'
+2017-04-11T22:34:25.657-0500 I CONTROL  [initandlisten] 
+
+
+follow the instuctions at
+
+https://docs.mongodb.com/master/tutorial/enable-authentication/
+ 
+http://stackoverflow.com/questions/41615574/mongodb-server-has-startup-warnings-access-control-is-not-enabled-for-the-dat
+
+
+use admin
+db.createUser(
+  {
+    user: "myUserAdmin",
+    pwd: "abc123",
+    roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
+  }
+)
+
+Re-start the MongoDB instance with access control.
+
+dcaragea@viper:~/mongodb$ mongodb-linux-x86_64-ubuntu1604-3.4.3/bin/mongod --dbpath /home/d/dcaragea/mongodb/data/db --port 2012 --auth
+
+Connect and authenticate as the user administrator.
+
+dcaragea@viper:~/mongodb$ mongodb-linux-x86_64-ubuntu1604-3.4.3/bin/mongo --port 2012 -u "myUserAdmin" -p "abc123" --authenticationDatabase "admin"
+
+use dc
+db.createUser(
+  {
+    user: "doina",
+    pwd: "xyz123",
+    roles: [ { role: "readWrite", db: "test" },
+             { role: "read", db: "reporting" } ]
+  }
+)
+
+Connect and authenticate as doina.
+
+dcaragea@viper:~/mongodb$ mongodb-linux-x86_64-ubuntu1604-3.4.3/bin/mongo --port 2012 -u "doina" -p "xyz123" --authenticationDatabase "dc"
+
+
+
+https://docs.mongodb.com/getting-started/shell/import-data/
+
+
+dcaragea@viper:~$ mongodb-linux-x86_64-ubuntu1604-3.4.3/bin/mongoimport --port 2012 -u "doina" -p "xyz123" --authenticationDatabase "dc" --collection restaurants --db test --drop --file mongodb/primer-dataset.json 
+
+> use test
+
+
+db.restaurants.insert(
+   {
+      "address" : {
+         "street" : "2 Avenue",
+         "zipcode" : "10075",
+         "building" : "1480",
+         "coord" : [ -73.9557413, 40.7720266 ]
+      },
+      "borough" : "Manhattan",
+      "cuisine" : "Italian",
+      "grades" : [
+         {
+            "date" : ISODate("2014-10-01T00:00:00Z"),
+            "grade" : "A",
+            "score" : 11
+         },
+         {
+            "date" : ISODate("2014-01-16T00:00:00Z"),
+            "grade" : "B",
+            "score" : 17
+         }
+      ],
+      "name" : "Vella",
+      "restaurant_id" : "41704620"
+   }
+)
+
+> db.restaurants.find();
+
+> db.restaurants.find( { "borough": "Manhattan" } );
+
+> db.restaurants.find( { "address.zipcode": "10075" } );
+
+> db.restaurants.find( { "grades.grade": "B" } );
+
+> db.restaurants.find( { "grades.score": { $gt: 30 } } );
+
+> db.restaurants.find( { "grades.score": { $lt: 10 } } );
+
+> db.restaurants.find( { "cuisine": "Italian", "address.zipcode": "10075" } );
+
+> db.restaurants.find(
+   { $or: [ { "cuisine": "Italian" }, { "address.zipcode": "10075" } ] }
+);
+
+> db.restaurants.find().sort( { "borough": 1, "address.zipcode": 1 } );
+
+
+
+dcaragea@viper:~$ mongodb-linux-x86_64-ubuntu1604-3.4.3/bin/mongoimport --port 2012 -u "doina" -p "xyz123" --authenticationDatabase "dc" --collection zipcodes --db test --drop --file mongodb/zips.json 
+
+The following aggregation operation returns all states with total population greater than 10 million:
+
+db.zipcodes.aggregate( [
+   { $group: { _id: "$state", totalPop: { $sum: "$pop" } } },
+   { $match: { totalPop: { $gte: 10*1000*1000 } } }
+] )
+
+SELECT state, SUM(pop) AS totalPop
+FROM zipcodes
+GROUP BY state
+HAVING totalPop >= (10*1000*1000)
+
+
+The following aggregation operation returns the average populations for cities in each state:
+
+db.zipcodes.aggregate( [
+   { $group: { _id: { state: "$state", city: "$city" }, pop: { $sum: "$pop" } } },
+   { $group: { _id: "$_id.state", avgCityPop: { $avg: "$pop" } } }
+] )
+
+
+The following aggregation operation returns the smallest and largest cities by population for each state:
+
+db.zipcodes.aggregate( [
+   { $group:
+      {
+        _id: { state: "$state", city: "$city" },
+        pop: { $sum: "$pop" }
+      }
+   },
+   { $sort: { pop: 1 } },
+   { $group:
+      {
+        _id : "$_id.state",
+        biggestCity:  { $last: "$_id.city" },
+        biggestPop:   { $last: "$pop" },
+        smallestCity: { $first: "$_id.city" },
+        smallestPop:  { $first: "$pop" }
+      }
+   },
+
+  // the following $project is optional, and
+  // modifies the output format.
+
+  { $project:
+    { _id: 0,
+      state: "$_id",
+      biggestCity:  { name: "$biggestCity",  pop: "$biggestPop" },
+      smallestCity: { name: "$smallestCity", pop: "$smallestPop" }
+    }
+  }
+] )
+
+
+
+
+
+
